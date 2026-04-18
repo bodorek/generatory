@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator grafiki dla wizytówki Medycyna Kręgosłupa</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #eef0f2;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    gap: 24px;
+    padding: 24px;
+    align-items: flex-start;
+  }
+
+  /* ── EDITOR ── */
+  .editor {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px;
+    width: 290px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 24px;
+    border: 1px solid #e4e8ec;
+  }
+
+  .editor-logo .brand {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a6e7a;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .editor-logo .sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: #aaa;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .editor label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #aaa;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .editor textarea {
+    width: 100%;
+    border: 1.5px solid #e4e8ec;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #1a2a30;
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.4;
+    transition: border-color 0.2s;
+    background: #f9fafb;
+  }
+  .editor textarea:focus { outline: none; border-color: #1a6e7a; background: #fff; }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5px;
+  }
+
+  .photo-option {
+    border: 2px solid transparent;
+    border-radius: 7px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+    aspect-ratio: 4/3;
+  }
+  .photo-option:hover { transform: scale(1.04); }
+  .photo-option.selected { border-color: #1a6e7a; }
+  .photo-option img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-option .check {
+    position: absolute; top: 3px; right: 3px;
+    width: 15px; height: 15px;
+    background: #1a6e7a; border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+  }
+  .photo-option.selected .check { display: flex; }
+  .photo-option .check svg { width: 8px; height: 8px; }
+
+  .upload-btn {
+    border: 1.5px dashed #cdd5da;
+    border-radius: 7px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer;
+    aspect-ratio: 4/3;
+    color: #b0bec5; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .upload-btn:hover { border-color: #1a6e7a; color: #1a6e7a; }
+  .upload-btn svg { width: 16px; height: 16px; }
+  #file-input { display: none; }
+
+  .export-btn {
+    background: #1a6e7a;
+    color: #fff; border: none;
+    border-radius: 9px; padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; width: 100%;
+    transition: background 0.2s;
+  }
+  .export-btn:hover { background: #145860; }
+  .export-btn:disabled { background: #a0c4c9; cursor: not-allowed; }
+
+  .hint { font-size: 11px; color: #bbb; line-height: 1.5; text-align: center; }
+  .divider { height: 1px; background: #f0f2f4; }
+
+  /* ── PREVIEW ── */
+  .preview-area {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: flex-start; gap: 10px;
+    min-width: 0;
+  }
+
+  .preview-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #aaa;
+  }
+
+  .scale-wrapper { overflow: hidden; }
+
+  /* ── CARD 958×610 ── */
+  .card {
+    width: 958px; height: 610px;
+    background: #ffffff;
+    position: relative; overflow: hidden;
+    transform-origin: top left;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Teal left panel */
+  .card-panel {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 58px;
+    background: #1a6e7a;
+  }
+
+  /* ORTEA® vertical text on panel */
+  .card-panel-text {
+    position: absolute;
+    bottom: 40px; left: 0;
+    width: 58px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+  }
+
+  /* Photo right half */
+  .card-photo-wrap {
+    position: absolute;
+    right: 0; top: 0;
+    width: 440px; height: 610px;
+    overflow: hidden;
+  }
+
+  .card-photo-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: 50% center;
+    display: block;
+  }
+
+  /* Gradient from white over photo */
+  .card-photo-wrap::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, #fff 0%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0) 100%);
+    z-index: 1;
+  }
+
+  /* Main content area */
+  .card-content {
+    position: absolute;
+    left: 80px; top: 0; bottom: 0;
+    width: 470px;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    padding-right: 32px;
+    z-index: 2;
+  }
+
+  .card-eyebrow {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #1a6e7a;
+    margin-bottom: 18px;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 44px;
+    font-weight: 400;
+    line-height: 1.13;
+    color: #0f2329;
+    text-wrap: pretty;
+  }
+
+  .card-divider {
+    width: 40px; height: 2px;
+    background: #1a6e7a;
+    margin-top: 28px;
+  }
+
+  .card-location {
+    position: absolute;
+    bottom: 36px; left: 80px;
+    display: flex; align-items: center; gap: 7px;
+    z-index: 2;
+  }
+  .card-location span {
+    font-size: 13px; font-weight: 400;
+    color: #90a4aa;
+    letter-spacing: 0.03em;
+  }
+</style>
+</head>
+<body>
+
+<!-- EDITOR -->
+<div class="editor">
+  <div class="editor-logo">
+    <div class="brand">Medycyna Kręgosłupa</div>
+    <div class="sub">Generator grafiki · wizytówka Google</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <label>Tytuł grafiki</label>
+    <textarea id="title-input" placeholder="Wpisz temat posta...">Kriolezja – skuteczne leczenie bólu kręgosłupa bez operacji</textarea>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <label>Wybierz zdjęcie</label>
+    <div class="photo-grid" id="photo-grid"></div>
+    <input type="file" id="file-input" accept="image/*">
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <label>Pozycja zdjęcia (lewo ↔ prawo)</label>
+    <input type="range" id="photo-pos" min="0" max="100" value="50" style="width:100%;accent-color:#1a6e7a;">
+  </div>
+
+  <div class="divider"></div>
+
+  <button class="export-btn" onclick="exportPNG()">⬇ Pobierz PNG (958×610)</button>
+  <p class="hint">Podgląd na żywo. Kliknij zdjęcie lub wgraj własne.</p>
+</div>
+
+<!-- PREVIEW -->
+<div class="preview-area">
+  <div class="preview-label">Podgląd grafiki</div>
+  <div class="scale-wrapper" id="scale-wrapper">
+    <div class="card" id="card">
+      <div class="card-panel">
+        <div class="card-panel-text">ORTEA®</div>
+      </div>
+
+      <div class="card-photo-wrap">
+        <img id="card-photo" src="uploads/2024-10-30.webp" alt="">
+      </div>
+
+      <div class="card-content">
+        <div class="card-eyebrow">Centrum Medycyny Kręgosłupa</div>
+        <div class="card-title" id="card-title-el">Kriolezja – skuteczne leczenie bólu kręgosłupa bez operacji</div>
+        <div class="card-divider"></div>
+      </div>
+
+      <div class="card-location">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#90a4aa"/>
+        </svg>
+        <span>ul. Niedziałkowskiego 10, Poznań</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const PHOTOS = [
+  { src: 'uploads/2024-10-30.webp',     label: 'Zabieg 1' },
+  { src: 'uploads/2024-10-30 (1).webp', label: 'Konsultacja' },
+];
+
+function buildPhotoGrid() {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  PHOTOS.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'photo-option' + (i === 0 ? ' selected' : '');
+    div.innerHTML = `<img src="${p.src}" alt="${p.label}" onerror="this.parentElement.style.display='none'">
+      <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+    div.addEventListener('click', () => selectPhoto(p.src, div));
+    grid.appendChild(div);
+  });
+
+  const uploadLabel = document.createElement('label');
+  uploadLabel.className = 'upload-btn';
+  uploadLabel.htmlFor = 'file-input';
+  uploadLabel.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Własne`;
+  grid.appendChild(uploadLabel);
+}
+
+function selectPhoto(src, el) {
+  document.getElementById('card-photo').src = src;
+  document.querySelectorAll('.photo-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+document.getElementById('file-input').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const grid = document.getElementById('photo-grid');
+  const uploadBtn = grid.lastElementChild;
+  const prev = document.getElementById('custom-opt');
+  if (prev) prev.remove();
+  const div = document.createElement('div');
+  div.className = 'photo-option selected';
+  div.id = 'custom-opt';
+  div.innerHTML = `<img src="${url}" alt="Własne">
+    <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+  div.addEventListener('click', () => selectPhoto(url, div));
+  grid.insertBefore(div, uploadBtn);
+  selectPhoto(url, div);
+});
+
+document.getElementById('title-input').addEventListener('input', function() {
+  document.getElementById('card-title-el').textContent = this.value;
+});
+
+document.getElementById('photo-pos').addEventListener('input', function() {
+  document.getElementById('card-photo').style.objectPosition = this.value + '% center';
+});
+
+function scaleCard() {
+  const availW = window.innerWidth - 290 - 24*3;
+  const availH = window.innerHeight - 48;
+  const scale = Math.min(availW / 958, availH / 610, 1);
+  document.getElementById('card').style.transform = `scale(${scale})`;
+  document.getElementById('scale-wrapper').style.width  = (958 * scale) + 'px';
+  document.getElementById('scale-wrapper').style.height = (610 * scale) + 'px';
+}
+window.addEventListener('resize', scaleCard);
+scaleCard();
+buildPhotoGrid();
+
+async function exportPNG() {
+  const btn = document.querySelector('.export-btn');
+  btn.textContent = '⏳ Generuję...';
+  btn.disabled = true;
+
+  const card = document.getElementById('card');
+  const clone = card.cloneNode(true);
+  clone.style.transform = 'none';
+  clone.style.position = 'fixed';
+  clone.style.top = '-700px';
+  clone.style.left = '0';
+  clone.style.width = '958px';
+  clone.style.height = '610px';
+  clone.style.zIndex = '-999';
+  document.body.appendChild(clone);
+
+  await new Promise(r => setTimeout(r, 200));
+
+  try {
+    const canvas = await html2canvas(clone, {
+      width: 958, height: 610, scale: 1,
+      useCORS: true, allowTaint: true, logging: false,
+      backgroundColor: '#ffffff',
+      scrollX: 0, scrollY: 700,
+    });
+
+    const title = document.getElementById('title-input').value.slice(0, 50)
+      .replace(/[^\w\sąćęłńóśźżĄĆĘŁŃÓŚŹŻ–-]/g, '').trim() || 'grafika';
+    const link = document.createElement('a');
+    link.download = 'Medycyna Kręgosłupa – ' + title + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } finally {
+    document.body.removeChild(clone);
+    btn.textContent = '⬇ Pobierz PNG (958×610)';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
