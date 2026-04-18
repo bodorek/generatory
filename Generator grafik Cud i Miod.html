@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator grafiki dla wizytówki Cud i Miód</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f5f0e8;
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    gap: 24px;
+    padding: 24px;
+    align-items: flex-start;
+  }
+
+  /* ── EDITOR ── */
+  .editor {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px;
+    width: 290px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 24px;
+    border: 1px solid #ece6d8;
+  }
+
+  .editor-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .editor-logo .hex-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+  }
+
+  .editor-logo .texts .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #2a2a2a;
+  }
+
+  .editor-logo .texts .sub {
+    font-size: 9px;
+    font-weight: 400;
+    color: #aaa;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .editor label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #bbb;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .editor textarea {
+    width: 100%;
+    border: 1.5px solid #ece6d8;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    color: #2a2a2a;
+    background: #faf8f4;
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  .editor textarea:focus { outline: none; border-color: #e6b830; background: #fff; }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5px;
+  }
+
+  .photo-option {
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+    aspect-ratio: 1;
+  }
+  .photo-option:hover { transform: scale(1.05); }
+  .photo-option.selected { border-color: #e6b830; }
+  .photo-option img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-option .check {
+    position: absolute; top: 3px; right: 3px;
+    width: 14px; height: 14px;
+    background: #e6b830; border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+  }
+  .photo-option.selected .check { display: flex; }
+  .photo-option .check svg { width: 7px; height: 7px; }
+
+  .upload-btn {
+    border: 1.5px dashed #ddd;
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer;
+    aspect-ratio: 1;
+    color: #ccc; font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    transition: border-color 0.2s, color 0.2s;
+    background: #faf8f4;
+  }
+  .upload-btn:hover { border-color: #e6b830; color: #e6b830; }
+  .upload-btn svg { width: 14px; height: 14px; }
+  #file-input { display: none; }
+
+  .layout-opts {
+    display: flex;
+    gap: 6px;
+  }
+  .layout-opt {
+    flex: 1;
+    border: 1.5px solid #ece6d8;
+    border-radius: 8px;
+    padding: 8px 4px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #bbb;
+    transition: all 0.2s;
+    background: #faf8f4;
+  }
+  .layout-opt:hover { border-color: #e6b830; color: #c9991a; }
+  .layout-opt.active { border-color: #e6b830; color: #c9991a; background: #fffbf0; }
+  .layout-opt svg { display: block; margin: 0 auto 4px; width: 22px; height: 16px; }
+
+  .export-btn {
+    background: #e6b830;
+    color: #fff;
+    border: none; border-radius: 10px; padding: 13px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; width: 100%;
+    transition: background 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .export-btn:hover { background: #c9991a; }
+  .export-btn:disabled { background: #e8d9a8; cursor: not-allowed; }
+
+  .hint { font-size: 10px; color: #ccc; line-height: 1.5; text-align: center; }
+  .divider { height: 1px; background: #f0ebe0; }
+
+  /* ── PREVIEW AREA ── */
+  .preview-area {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: flex-start; gap: 10px;
+    min-width: 0;
+  }
+
+  .preview-label {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: #bbb;
+  }
+
+  .scale-wrapper { overflow: hidden; }
+
+  /* ══════════════════
+     CARD 958×610
+  ══════════════════ */
+  .card {
+    width: 958px; height: 610px;
+    position: relative; overflow: hidden;
+    transform-origin: top left;
+    background: #fffdf7;
+  }
+
+  .card-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 8% 92%, rgba(230,184,48,0.09) 0%, transparent 48%),
+      radial-gradient(ellipse at 92% 8%, rgba(230,184,48,0.06) 0%, transparent 42%);
+    z-index: 0;
+  }
+
+  /* LAYOUT A - zdjęcie prawo */
+  .card[data-layout="A"] .photo-zone {
+    position: absolute; right: 0; top: 0;
+    width: 490px; height: 610px; overflow: hidden;
+  }
+  .card[data-layout="A"] .photo-zone img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;
+  }
+  .card[data-layout="A"] .photo-zone::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to right, #fffdf7 0%, rgba(255,253,247,0.35) 38%, rgba(255,253,247,0) 100%);
+  }
+  .card[data-layout="A"] .content-zone {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 520px;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 56px 64px; z-index: 2;
+  }
+
+  /* LAYOUT B - zdjęcie góra / pełne */
+  .card[data-layout="B"] .photo-zone {
+    position: absolute; inset: 0; overflow: hidden;
+  }
+  .card[data-layout="B"] .photo-zone img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;
+  }
+  .card[data-layout="B"] .photo-zone::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(255,253,247,0.97) 30%, rgba(255,253,247,0.5) 58%, rgba(255,253,247,0.05) 100%);
+  }
+  .card[data-layout="B"] .content-zone {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 64px 48px; z-index: 2;
+  }
+  .card[data-layout="B"] .card-title { font-size: 44px; }
+
+  /* LAYOUT C - zdjęcie lewo */
+  .card[data-layout="C"] .photo-zone {
+    position: absolute; left: 0; top: 0;
+    width: 430px; height: 610px; overflow: hidden;
+  }
+  .card[data-layout="C"] .photo-zone img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;
+  }
+  .card[data-layout="C"] .photo-zone::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to left, #fffdf7 0%, rgba(255,253,247,0.35) 38%, rgba(255,253,247,0) 100%);
+  }
+  .card[data-layout="C"] .content-zone {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 558px;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 56px 60px 56px 52px; z-index: 2;
+  }
+
+  /* Wspólne elementy treści */
+  .card-eyebrow {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 18px;
+  }
+  .card-eyebrow .eyebrow-hex { width: 18px; height: 18px; flex-shrink: 0; }
+  .card-eyebrow span {
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: #c9991a;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px; font-weight: 700;
+    line-height: 1.1; color: #1e1e1e;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+
+  .card-line {
+    width: 36px; height: 3px;
+    background: #e6b830; border-radius: 2px;
+    margin-top: 26px; flex-shrink: 0;
+  }
+
+  /* Watermark */
+  .card-wm {
+    position: absolute; right: 36px; bottom: 30px;
+    z-index: 3;
+    display: flex; align-items: center; gap: 7px;
+    opacity: 0.45;
+  }
+  .card-wm svg { width: 20px; height: 20px; }
+  .card-wm span {
+    font-family: 'Playfair Display', serif;
+    font-size: 12px; font-weight: 700;
+    color: #2a2a2a; letter-spacing: 0.05em;
+  }
+  .card[data-layout="B"] .card-wm { right: auto; left: 64px; bottom: 48px; }
+</style>
+</head>
+<body>
+
+<div class="editor">
+  <div class="editor-logo">
+    <svg class="hex-icon" viewBox="0 0 36 36" fill="none">
+      <path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="#1e1e1e"/>
+      <text x="18" y="13" text-anchor="middle" font-family="Georgia,serif" font-size="5.5" font-weight="bold" fill="#e6b830">CUD</text>
+      <text x="18" y="19.5" text-anchor="middle" font-family="Georgia,serif" font-size="3.8" fill="#e6b830">I</text>
+      <text x="18" y="26" text-anchor="middle" font-family="Georgia,serif" font-size="5.5" font-weight="bold" fill="#e6b830">MIÓD</text>
+    </svg>
+    <div class="texts">
+      <div class="brand">Cud i Miód</div>
+      <div class="sub">Generator grafiki · wizytówka</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <label>Tytuł grafiki</label>
+    <textarea id="title-input">Catering dietetyczny – smacznie, zdrowo i bez gotowania</textarea>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <label>Układ grafiki</label>
+    <div class="layout-opts">
+      <div class="layout-opt active" data-layout="A" onclick="setLayout('A')">
+        <svg viewBox="0 0 22 16" fill="none">
+          <rect x="0" y="0" width="10" height="16" fill="#e6b830" opacity="0.2" rx="1"/>
+          <rect x="11" y="0" width="11" height="16" fill="#e6b830" opacity="0.7" rx="1"/>
+        </svg>
+        Prawo
+      </div>
+      <div class="layout-opt" data-layout="B" onclick="setLayout('B')">
+        <svg viewBox="0 0 22 16" fill="none">
+          <rect x="0" y="0" width="22" height="9" fill="#e6b830" opacity="0.7" rx="1"/>
+          <rect x="0" y="10" width="22" height="6" fill="#e6b830" opacity="0.2" rx="1"/>
+        </svg>
+        Góra
+      </div>
+      <div class="layout-opt" data-layout="C" onclick="setLayout('C')">
+        <svg viewBox="0 0 22 16" fill="none">
+          <rect x="0" y="0" width="11" height="16" fill="#e6b830" opacity="0.7" rx="1"/>
+          <rect x="12" y="0" width="10" height="16" fill="#e6b830" opacity="0.2" rx="1"/>
+        </svg>
+        Lewo
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <label>Wybierz zdjęcie</label>
+    <div class="photo-grid" id="photo-grid"></div>
+    <input type="file" id="file-input" accept="image/*">
+  </div>
+
+  <div class="divider"></div>
+
+  <button class="export-btn" onclick="exportPNG()">↓ Pobierz PNG (958×610)</button>
+  <p class="hint">Podgląd na żywo. Kliknij zdjęcie lub wgraj własne.</p>
+</div>
+
+<div class="preview-area">
+  <div class="preview-label">Podgląd grafiki</div>
+  <div class="scale-wrapper" id="scale-wrapper">
+    <div class="card" id="card" data-layout="A">
+
+      <div class="card-bg"></div>
+
+      <div class="photo-zone">
+        <img id="card-photo" src="" alt="">
+      </div>
+
+      <div class="content-zone">
+        <div class="card-eyebrow">
+          <svg class="eyebrow-hex" viewBox="0 0 18 18" fill="none">
+            <path d="M9 1L16.5 5.25V12.75L9 17L1.5 12.75V5.25L9 1Z" fill="#e6b830"/>
+            <path d="M9 5L13 7.3V11.7L9 13L5 11.7V7.3L9 5Z" fill="#fff" opacity="0.4"/>
+          </svg>
+          <span>Fit Catering · Cud i Miód</span>
+        </div>
+        <div class="card-title" id="card-title-el">Catering dietetyczny – smacznie, zdrowo i bez gotowania</div>
+        <div class="card-line"></div>
+      </div>
+
+      <div class="card-wm">
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="M10 1L18 5.5V14.5L10 19L2 14.5V5.5L10 1Z" fill="#2a2a2a" opacity="0.75"/>
+          <text x="10" y="9.5" text-anchor="middle" font-family="Georgia,serif" font-size="3.2" font-weight="bold" fill="#e6b830">CUD</text>
+          <text x="10" y="12.5" text-anchor="middle" font-family="Georgia,serif" font-size="2.4" fill="#e6b830">I</text>
+          <text x="10" y="15.8" text-anchor="middle" font-family="Georgia,serif" font-size="3.2" font-weight="bold" fill="#e6b830">MIÓD</text>
+        </svg>
+        <span>cudimiod.pl</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const PHOTOS = [
+  { src: 'uploads/672319483_18405412936196205_5934798468731067569_n.jpg',  label: 'Naleśniki' },
+  { src: 'uploads/518920998_18365393617196205_1446692323851021648_n.jpg',  label: 'Soki' },
+  { src: 'uploads/522770595_18366744544196205_8414723526609485678_n.jpg',  label: 'Gnocchi' },
+  { src: 'uploads/587200716_18385762996196205_3867719492547684418_n.jpg',  label: 'Zestaw dań' },
+  { src: 'uploads/622715020_18392363203196205_4850973982324324117_n.jpg',  label: 'Deser' },
+  { src: 'uploads/657070220_18402257554196205_4009864876558391058_n.jpg',  label: 'Dania fit' },
+  { src: 'uploads/670833308_18405412990196205_7568339931817031244_n.jpg',  label: 'Pakowanie' },
+  { src: 'uploads/671174040_18405412954196205_3695244995509259825_n.jpg',  label: 'Crumble' },
+];
+
+function buildPhotoGrid() {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  PHOTOS.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'photo-option' + (i === 0 ? ' selected' : '');
+    div.innerHTML = `<img src="${p.src}" alt="${p.label}" onerror="this.parentElement.style.display='none'">
+      <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+    div.addEventListener('click', () => selectPhoto(p.src, div));
+    grid.appendChild(div);
+  });
+
+  const uploadLabel = document.createElement('label');
+  uploadLabel.className = 'upload-btn';
+  uploadLabel.htmlFor = 'file-input';
+  uploadLabel.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Własne`;
+  grid.appendChild(uploadLabel);
+}
+
+function selectPhoto(src, el) {
+  document.getElementById('card-photo').src = src;
+  document.querySelectorAll('.photo-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function setLayout(layout) {
+  document.getElementById('card').dataset.layout = layout;
+  document.querySelectorAll('.layout-opt').forEach(o => {
+    o.classList.toggle('active', o.dataset.layout === layout);
+  });
+}
+
+document.getElementById('file-input').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const grid = document.getElementById('photo-grid');
+  const uploadBtn = grid.lastElementChild;
+  const prev = document.getElementById('custom-opt');
+  if (prev) prev.remove();
+  const div = document.createElement('div');
+  div.className = 'photo-option selected';
+  div.id = 'custom-opt';
+  div.innerHTML = `<img src="${url}" alt="Własne">
+    <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+  div.addEventListener('click', () => selectPhoto(url, div));
+  grid.insertBefore(div, uploadBtn);
+  selectPhoto(url, div);
+});
+
+document.getElementById('title-input').addEventListener('input', function() {
+  document.getElementById('card-title-el').textContent = this.value;
+});
+
+function scaleCard() {
+  const availW = window.innerWidth - 290 - 24*3;
+  const availH = window.innerHeight - 48;
+  const scale = Math.min(availW / 958, availH / 610, 1);
+  document.getElementById('card').style.transform = `scale(${scale})`;
+  document.getElementById('scale-wrapper').style.width  = (958 * scale) + 'px';
+  document.getElementById('scale-wrapper').style.height = (610 * scale) + 'px';
+}
+window.addEventListener('resize', scaleCard);
+scaleCard();
+buildPhotoGrid();
+
+window.addEventListener('load', () => {
+  const firstOpt = document.querySelector('.photo-option');
+  if (firstOpt) {
+    const img = firstOpt.querySelector('img');
+    if (img) selectPhoto(img.src, firstOpt);
+  }
+});
+
+async function exportPNG() {
+  const btn = document.querySelector('.export-btn');
+  btn.textContent = '⏳ Generuję...';
+  btn.disabled = true;
+
+  const card = document.getElementById('card');
+  const clone = card.cloneNode(true);
+  clone.style.transform = 'none';
+  clone.style.position = 'fixed';
+  clone.style.top = '-700px';
+  clone.style.left = '0';
+  clone.style.width = '958px';
+  clone.style.height = '610px';
+  clone.style.zIndex = '-999';
+  document.body.appendChild(clone);
+
+  await new Promise(r => setTimeout(r, 200));
+
+  try {
+    const canvas = await html2canvas(clone, {
+      width: 958, height: 610, scale: 1,
+      useCORS: true, allowTaint: true, logging: false,
+      backgroundColor: '#fffdf7',
+      scrollX: 0, scrollY: 700,
+    });
+
+    const title = document.getElementById('title-input').value.slice(0, 50)
+      .replace(/[^\w\sąćęłńóśźżĄĆĘŁŃÓŚŹŻ–-]/g, '').trim() || 'grafika';
+    const link = document.createElement('a');
+    link.download = 'Cud i Miod – ' + title + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } finally {
+    document.body.removeChild(clone);
+    btn.textContent = '↓ Pobierz PNG (958×610)';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
