@@ -90,6 +90,52 @@
     gap: 6px;
   }
 
+  .position-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .position-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .position-slider-row label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 0;
+    width: 14px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .position-slider-row input[type="range"] {
+    flex: 1;
+    accent-color: #2a7bbf;
+    cursor: pointer;
+  }
+  .position-reset {
+    background: none;
+    border: 1px solid #e0e0e0;
+    color: #999;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Lato', sans-serif;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .position-reset:hover {
+    border-color: #2a7bbf;
+    color: #2a7bbf;
+  }
+
   .photo-option {
     border: 2.5px solid transparent;
     border-radius: 8px;
@@ -280,6 +326,18 @@
     <label>Wybierz zdjęcie</label>
     <div class="photo-grid" id="photo-grid"></div>
     <input type="file" id="file-input" accept="image/*">
+
+    <div class="position-controls">
+      <div class="position-slider-row">
+        <label title="Pozycja w poziomie">←→</label>
+        <input type="range" id="pos-x" min="0" max="100" value="50">
+      </div>
+      <div class="position-slider-row">
+        <label title="Pozycja w pionie">↑↓</label>
+        <input type="range" id="pos-y" min="0" max="100" value="50">
+        <button type="button" class="position-reset" id="pos-reset">Reset</button>
+      </div>
+    </div>
   </div>
 
   <div class="divider"></div>
@@ -371,7 +429,25 @@ function selectPhoto(src, el, label = '') {
   img.alt = label;
   document.querySelectorAll('.photo-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
+  // Reset pozycji do center przy zmianie zdjęcia
+  resetPhotoPosition();
 }
+
+function updatePhotoPosition() {
+  const x = document.getElementById('pos-x').value;
+  const y = document.getElementById('pos-y').value;
+  document.getElementById('card-photo-img').style.objectPosition = `${x}% ${y}%`;
+}
+
+function resetPhotoPosition() {
+  document.getElementById('pos-x').value = 50;
+  document.getElementById('pos-y').value = 50;
+  updatePhotoPosition();
+}
+
+document.getElementById('pos-x').addEventListener('input', updatePhotoPosition);
+document.getElementById('pos-y').addEventListener('input', updatePhotoPosition);
+document.getElementById('pos-reset').addEventListener('click', resetPhotoPosition);
 
 document.getElementById('file-input').addEventListener('change', function() {
   const file = this.files[0];
@@ -438,6 +514,65 @@ window.addEventListener('resize', scaleCard);
 scaleCard();
 buildPhotoGrid();
 
+// Pozycja zdjęcia w canvas (musi pasować do CSS .card-photo)
+const PHOTO_X = 650;       // left = 1200 - 150 (right) - 400 (width)
+const PHOTO_Y = 200;       // top
+const PHOTO_W = 400;
+const PHOTO_H = 500;
+const PHOTO_RADIUS = 20;
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      const fallback = new Image();
+      fallback.onload = () => resolve(fallback);
+      fallback.onerror = () => reject(new Error('Nie udało się załadować: ' + src));
+      fallback.src = src;
+    };
+    img.src = src;
+  });
+}
+
+function drawCoverImage(ctx, img, x, y, w, h, posX = 50, posY = 50) {
+  // CSS-owe object-fit: cover + object-position
+  const imgRatio = img.naturalWidth / img.naturalHeight;
+  const containerRatio = w / h;
+  let drawW, drawH;
+  if (imgRatio > containerRatio) {
+    drawH = h;
+    drawW = h * imgRatio;
+  } else {
+    drawW = w;
+    drawH = w / imgRatio;
+  }
+  const offsetX = -(drawW - w) * (posX / 100);
+  const offsetY = -(drawH - h) * (posY / 100);
+  ctx.drawImage(img, x + offsetX, y + offsetY, drawW, drawH);
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  // Fallback jeśli ctx.roundRect nie istnieje (starsze przeglądarki)
+  if (typeof ctx.roundRect === 'function') {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 // ── Export ──
 async function exportPNG() {
   const btn = document.getElementById('export-btn');
@@ -446,21 +581,23 @@ async function exportPNG() {
   btn.disabled = true;
 
   const card = document.getElementById('card');
+  const imgEl = document.getElementById('card-photo-img');
 
   // Wyłącz safe zone na czas eksportu
   const safeZoneWasOn = card.classList.contains('show-safe-zone');
   card.classList.remove('show-safe-zone');
 
-  // Preload bieżącego obrazu (szczególnie ważne dla własnych uploadów)
-  const imgEl = document.getElementById('card-photo-img');
-  if (imgEl.src && !imgEl.complete) {
-    await new Promise((resolve) => {
-      const handler = () => resolve();
-      imgEl.addEventListener('load', handler, { once: true });
-      imgEl.addEventListener('error', handler, { once: true });
-      setTimeout(resolve, 2000); // fallback
-    });
-  }
+  // Zapamiętaj URL i pozycję — html2canvas ignoruje object-position,
+  // więc zdjęcie dorysujemy ręcznie po renderze
+  const photoUrl = imgEl.src;
+  const posXRaw = parseInt(document.getElementById('pos-x').value, 10);
+  const posYRaw = parseInt(document.getElementById('pos-y').value, 10);
+  const posX = Number.isNaN(posXRaw) ? 50 : posXRaw;
+  const posY = Number.isNaN(posYRaw) ? 50 : posYRaw;
+
+  // Tymczasowo ukryj img w oryginale (klon to skopiuje)
+  const origVisibility = imgEl.style.visibility;
+  imgEl.style.visibility = 'hidden';
 
   // Klon offscreen do renderingu w 100%
   const offscreen = document.createElement('div');
@@ -481,7 +618,9 @@ async function exportPNG() {
   await new Promise(r => setTimeout(r, 150));
 
   try {
-    const canvas = await html2canvas(clone, {
+    // 1. html2canvas renderuje wszystko poza zdjęciem (zdjęcie ukryte, ale .card-photo
+    //    zachowuje background, border-radius i box-shadow)
+    const h2cCanvas = await html2canvas(clone, {
       width: CARD_WIDTH,
       height: CARD_HEIGHT,
       scale: 1,
@@ -491,6 +630,29 @@ async function exportPNG() {
       backgroundColor: '#ffffff',
     });
 
+    // 2. Skopiuj do nowego canvas — canvas z html2canvas jest "zamrożony"
+    //    i nie pozwala na dalsze rysowanie, więc kopiujemy do świeżego
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = CARD_WIDTH;
+    finalCanvas.height = CARD_HEIGHT;
+    const ctx = finalCanvas.getContext('2d');
+    ctx.drawImage(h2cCanvas, 0, 0);
+
+    // 3. Dorysuj zdjęcie ręcznie z maską roundRect + cover + object-position
+    if (photoUrl) {
+      try {
+        const img = await loadImage(photoUrl);
+        ctx.save();
+        roundRectPath(ctx, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H, PHOTO_RADIUS);
+        ctx.clip();
+        drawCoverImage(ctx, img, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H, posX, posY);
+        ctx.restore();
+      } catch (imgErr) {
+        console.warn('Nie udało się dorysować zdjęcia:', imgErr);
+      }
+    }
+
+    // 4. Eksport
     const title = (titleInput.value || 'grafika')
       .slice(0, 50)
       .replace(/[^\w\sąćęłńóśźżĄĆĘŁŃÓŚŹŻ–-]/g, '')
@@ -498,13 +660,14 @@ async function exportPNG() {
 
     const link = document.createElement('a');
     link.download = title + '.png';
-    link.href = canvas.toDataURL('image/png');
+    link.href = finalCanvas.toDataURL('image/png');
     link.click();
   } catch (err) {
     console.error('Błąd eksportu:', err);
     alert('Nie udało się wygenerować PNG. Sprawdź konsolę.');
   } finally {
     document.body.removeChild(offscreen);
+    imgEl.style.visibility = origVisibility;
     if (safeZoneWasOn) card.classList.add('show-safe-zone');
     btn.textContent = originalText;
     btn.disabled = false;
