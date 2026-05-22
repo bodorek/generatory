@@ -84,6 +84,54 @@
   }
   .char-counter.warn { color: #e07b39; }
 
+  .photo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  .photo-option {
+    border: 2.5px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+    aspect-ratio: 1;
+  }
+  .photo-option:hover { transform: scale(1.04); }
+  .photo-option:focus-visible {
+    outline: 2px solid #2a7bbf;
+    outline-offset: 2px;
+  }
+  .photo-option.selected { border-color: #2a7bbf; }
+  .photo-option img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-option .check {
+    position: absolute; top: 3px; right: 3px;
+    width: 16px; height: 16px;
+    background: #2a7bbf; border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+  }
+  .photo-option.selected .check { display: flex; }
+  .photo-option .check svg { width: 9px; height: 9px; }
+
+  .upload-btn {
+    border: 1.5px dashed #ccc;
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    aspect-ratio: 1;
+    color: #bbb;
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .upload-btn:hover { border-color: #2a7bbf; color: #2a7bbf; }
+  .upload-btn svg { width: 18px; height: 18px; }
+  #file-input { display: none; }
+
   .export-btn {
     background: #2a7bbf; color: #fff; border: none;
     border-radius: 10px; padding: 13px;
@@ -129,16 +177,6 @@
     transform-origin: top left;
   }
 
-  .card::before {
-    content: '';
-    position: absolute;
-    top: -140px; right: -140px;
-    width: 640px; height: 640px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(210,228,245,0.55) 0%, rgba(255,255,255,0) 70%);
-    pointer-events: none;
-  }
-
   .card::after {
     content: '';
     position: absolute;
@@ -166,21 +204,21 @@
   .card-left {
     position: absolute;
     left: 150px; top: 0; bottom: 0;
-    width: 800px;
+    width: 460px;
     display: flex; flex-direction: column; justify-content: center;
     z-index: 2;
   }
 
   .card-accent {
-    width: 60px; height: 6px;
-    background: #2a7bbf; border-radius: 3px;
-    margin-bottom: 32px; flex-shrink: 0;
+    width: 50px; height: 5px;
+    background: #2a7bbf; border-radius: 2.5px;
+    margin-bottom: 28px; flex-shrink: 0;
   }
 
   .card-title {
-    font-size: 60px; font-weight: 900;
+    font-size: 46px; font-weight: 900;
     line-height: 1.1; color: #111111;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
@@ -189,13 +227,34 @@
     position: absolute;
     bottom: 70px; left: 150px;
     display: flex; align-items: center; gap: 10px;
-    max-width: 800px;
+    max-width: 460px;
     z-index: 2;
   }
   .card-location span {
-    font-size: 22px; font-weight: 400; color: #555;
+    font-size: 20px; font-weight: 400; color: #555;
   }
   .card-location svg { flex-shrink: 0; }
+
+  /* Zdjęcie: prostokąt portretowy 400×500 px (4:5), prawa strona, w safe zone */
+  .card-photo {
+    position: absolute;
+    right: 150px;
+    top: 200px;
+    width: 400px;
+    height: 500px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    background: #f0f3f6;
+    z-index: 2;
+  }
+  .card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -213,6 +272,14 @@
   <div>
     <label>Adres</label>
     <input type="text" id="address-input" maxlength="60" value="Piątkowska 125b/3, Poznań">
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <label>Wybierz zdjęcie</label>
+    <div class="photo-grid" id="photo-grid"></div>
+    <input type="file" id="file-input" accept="image/*">
   </div>
 
   <div class="divider"></div>
@@ -237,10 +304,13 @@
         <div class="card-title" id="card-title-el">Fizjoterapia w leczeniu zawrotów głowy – błędnik czy mięśnie?</div>
       </div>
       <div class="card-location">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#2a7bbf"/>
         </svg>
         <span id="card-address-el">Piątkowska 125b/3, Poznań</span>
+      </div>
+      <div class="card-photo" id="card-photo">
+        <img id="card-photo-img" src="uploads/2024-05-20-1.webp" alt="">
       </div>
     </div>
   </div>
@@ -250,6 +320,86 @@
 <script>
 const CARD_WIDTH = 1200;
 const CARD_HEIGHT = 900;
+
+const PHOTOS = [
+  { src: 'uploads/2024-05-20-1.webp',      label: 'Kolano' },
+  { src: 'uploads/2024-05-26.webp',         label: 'Plecy' },
+  { src: 'uploads/2024-05-14-1.webp',       label: 'Szyja' },
+  { src: 'uploads/IMG_6929(1)-1.webp',      label: 'Nadgarstek' },
+  { src: 'uploads/2024-06-26-1.webp',       label: 'Gabinet' },
+  { src: 'uploads/2024-05-12.webp',         label: 'Masaż 1' },
+  { src: 'uploads/2024-05-12 (1)-1.webp',   label: 'Masaż 2' },
+  { src: 'uploads/2024-05-14.webp',         label: 'Szyja 2' },
+  { src: 'uploads/img_6929.webp',           label: 'Narzędzie' },
+  { src: 'uploads/photo-1776535144864.webp', label: 'Portret' },
+];
+
+let lastBlobUrl = null;
+
+function buildPhotoGrid() {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+
+  PHOTOS.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'photo-option' + (i === 0 ? ' selected' : '');
+    div.tabIndex = 0;
+    div.setAttribute('role', 'button');
+    div.setAttribute('aria-label', 'Wybierz zdjęcie: ' + p.label);
+    div.innerHTML = `<img src="${p.src}" alt="${p.label}" onerror="this.parentElement.style.display='none'">
+      <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+    div.addEventListener('click', () => selectPhoto(p.src, div, p.label));
+    div.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectPhoto(p.src, div, p.label);
+      }
+    });
+    grid.appendChild(div);
+  });
+
+  const uploadLabel = document.createElement('label');
+  uploadLabel.className = 'upload-btn';
+  uploadLabel.htmlFor = 'file-input';
+  uploadLabel.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Własne`;
+  grid.appendChild(uploadLabel);
+}
+
+function selectPhoto(src, el, label = '') {
+  const img = document.getElementById('card-photo-img');
+  img.src = src;
+  img.alt = label;
+  document.querySelectorAll('.photo-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+document.getElementById('file-input').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+
+  if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+  const url = URL.createObjectURL(file);
+  lastBlobUrl = url;
+
+  const grid = document.getElementById('photo-grid');
+  const uploadBtn = grid.lastElementChild;
+  const prev = document.getElementById('custom-opt');
+  if (prev) prev.remove();
+
+  const div = document.createElement('div');
+  div.className = 'photo-option selected';
+  div.id = 'custom-opt';
+  div.tabIndex = 0;
+  div.setAttribute('role', 'button');
+  div.setAttribute('aria-label', 'Wybierz wgrane zdjęcie');
+  div.innerHTML = `<img src="${url}" alt="Własne">
+    <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+  div.addEventListener('click', () => selectPhoto(url, div, 'Własne'));
+  grid.insertBefore(div, uploadBtn);
+  selectPhoto(url, div, 'Własne');
+
+  this.value = '';
+});
 
 // Tytuł
 const titleInput = document.getElementById('title-input');
@@ -286,6 +436,7 @@ function scaleCard() {
 }
 window.addEventListener('resize', scaleCard);
 scaleCard();
+buildPhotoGrid();
 
 // ── Export ──
 async function exportPNG() {
@@ -299,6 +450,17 @@ async function exportPNG() {
   // Wyłącz safe zone na czas eksportu
   const safeZoneWasOn = card.classList.contains('show-safe-zone');
   card.classList.remove('show-safe-zone');
+
+  // Preload bieżącego obrazu (szczególnie ważne dla własnych uploadów)
+  const imgEl = document.getElementById('card-photo-img');
+  if (imgEl.src && !imgEl.complete) {
+    await new Promise((resolve) => {
+      const handler = () => resolve();
+      imgEl.addEventListener('load', handler, { once: true });
+      imgEl.addEventListener('error', handler, { once: true });
+      setTimeout(resolve, 2000); // fallback
+    });
+  }
 
   // Klon offscreen do renderingu w 100%
   const offscreen = document.createElement('div');
@@ -316,7 +478,7 @@ async function exportPNG() {
   offscreen.appendChild(clone);
   document.body.appendChild(offscreen);
 
-  await new Promise(r => setTimeout(r, 100));
+  await new Promise(r => setTimeout(r, 150));
 
   try {
     const canvas = await html2canvas(clone, {
