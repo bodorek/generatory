@@ -69,7 +69,7 @@
   }
   .editor textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 90px;
   }
   .editor textarea:focus,
   .editor input[type="text"]:focus {
@@ -83,54 +83,6 @@
     margin-top: 4px;
   }
   .char-counter.warn { color: #e07b39; }
-
-  .photo-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 6px;
-  }
-
-  .photo-option {
-    border: 2.5px solid transparent;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.2s, transform 0.15s;
-    position: relative;
-    aspect-ratio: 1;
-  }
-  .photo-option:hover { transform: scale(1.04); }
-  .photo-option:focus-visible {
-    outline: 2px solid #2a7bbf;
-    outline-offset: 2px;
-  }
-  .photo-option.selected { border-color: #2a7bbf; }
-  .photo-option img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .photo-option .check {
-    position: absolute; top: 3px; right: 3px;
-    width: 16px; height: 16px;
-    background: #2a7bbf; border-radius: 50%;
-    display: none; align-items: center; justify-content: center;
-  }
-  .photo-option.selected .check { display: flex; }
-  .photo-option .check svg { width: 9px; height: 9px; }
-
-  .upload-btn {
-    border: 1.5px dashed #ccc;
-    border-radius: 8px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 3px;
-    cursor: pointer;
-    aspect-ratio: 1;
-    color: #bbb;
-    font-size: 9px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .upload-btn:hover { border-color: #2a7bbf; color: #2a7bbf; }
-  .upload-btn svg { width: 18px; height: 18px; }
-  #file-input { display: none; }
 
   .export-btn {
     background: #2a7bbf; color: #fff; border: none;
@@ -180,18 +132,30 @@
   .card::before {
     content: '';
     position: absolute;
-    top: -120px; right: -120px;
-    width: 560px; height: 560px;
+    top: -140px; right: -140px;
+    width: 640px; height: 640px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(210,228,245,0.5) 0%, rgba(255,255,255,0) 70%);
+    background: radial-gradient(circle, rgba(210,228,245,0.55) 0%, rgba(255,255,255,0) 70%);
     pointer-events: none;
   }
 
-  /* Safe zone overlay — pokazuje obszar bezpieczny przed kadrowaniem przez Google */
-  .card.show-safe-zone::after {
+  .card::after {
     content: '';
     position: absolute;
-    /* Środkowe 4:3, ale węższe — symulacja crop'u mobilnego do ~1:1 */
+    bottom: -180px; left: -120px;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(210,228,245,0.4) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
+  }
+
+  /* Safe zone overlay (900×900 px w środku) */
+  .card.show-safe-zone .safe-zone-marker {
+    display: block;
+  }
+  .safe-zone-marker {
+    display: none;
+    position: absolute;
     top: 0; bottom: 0;
     left: 150px; right: 150px;
     border: 2px dashed rgba(255, 0, 0, 0.5);
@@ -202,57 +166,36 @@
   .card-left {
     position: absolute;
     left: 150px; top: 0; bottom: 0;
-    width: 470px;
+    width: 800px;
     display: flex; flex-direction: column; justify-content: center;
+    z-index: 2;
   }
 
   .card-accent {
-    width: 44px; height: 5px;
-    background: #2a7bbf; border-radius: 2.5px;
-    margin-bottom: 26px; flex-shrink: 0;
+    width: 60px; height: 6px;
+    background: #2a7bbf; border-radius: 3px;
+    margin-bottom: 32px; flex-shrink: 0;
   }
 
   .card-title {
-    font-size: 46px; font-weight: 900;
+    font-size: 60px; font-weight: 900;
     line-height: 1.1; color: #111111;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
 
   .card-location {
     position: absolute;
-    bottom: 65px; left: 150px;
-    display: flex; align-items: center; gap: 8px;
-    max-width: 470px;
+    bottom: 70px; left: 150px;
+    display: flex; align-items: center; gap: 10px;
+    max-width: 800px;
+    z-index: 2;
   }
   .card-location span {
-    font-size: 18px; font-weight: 400; color: #555;
+    font-size: 22px; font-weight: 400; color: #555;
   }
   .card-location svg { flex-shrink: 0; }
-
-  /* Koło: w pełni wewnątrz safe zone 900x900 (right: 150px) */
-  .card-circle {
-    position: absolute;
-    right: 150px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 400px; height: 400px;
-    border-radius: 50%; overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.13);
-    background: #f0f3f6;
-  }
-  .card-photo {
-    width: 100%; height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  .card-circle.empty {
-    display: flex; align-items: center; justify-content: center;
-    color: #bbb; font-size: 14px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em;
-  }
 </style>
 </head>
 <body>
@@ -274,14 +217,6 @@
 
   <div class="divider"></div>
 
-  <div>
-    <label>Wybierz zdjęcie</label>
-    <div class="photo-grid" id="photo-grid"></div>
-    <input type="file" id="file-input" accept="image/*">
-  </div>
-
-  <div class="divider"></div>
-
   <label class="safe-zone-toggle">
     <input type="checkbox" id="safe-zone-toggle">
     Pokaż safe zone (900×900 px)
@@ -296,18 +231,16 @@
   <div class="preview-label">Podgląd grafiki (1200 × 900)</div>
   <div class="scale-wrapper" id="scale-wrapper">
     <div class="card" id="card">
+      <div class="safe-zone-marker"></div>
       <div class="card-left">
         <div class="card-accent"></div>
         <div class="card-title" id="card-title-el">Fizjoterapia w leczeniu zawrotów głowy – błędnik czy mięśnie?</div>
       </div>
       <div class="card-location">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#2a7bbf"/>
         </svg>
         <span id="card-address-el">Piątkowska 125b/3, Poznań</span>
-      </div>
-      <div class="card-circle" id="card-circle">
-        <div class="card-photo" id="card-photo" style="background-image: url('uploads/2024-05-20-1.webp');"></div>
       </div>
     </div>
   </div>
@@ -317,91 +250,6 @@
 <script>
 const CARD_WIDTH = 1200;
 const CARD_HEIGHT = 900;
-
-const PHOTOS = [
-  { src: 'uploads/2024-05-20-1.webp',      label: 'Kolano' },
-  { src: 'uploads/2024-05-26.webp',         label: 'Plecy' },
-  { src: 'uploads/2024-05-14-1.webp',       label: 'Szyja' },
-  { src: 'uploads/IMG_6929(1)-1.webp',      label: 'Nadgarstek' },
-  { src: 'uploads/2024-06-26-1.webp',       label: 'Gabinet' },
-  { src: 'uploads/2024-05-12.webp',         label: 'Masaż 1' },
-  { src: 'uploads/2024-05-12 (1)-1.webp',   label: 'Masaż 2' },
-  { src: 'uploads/2024-05-14.webp',         label: 'Szyja 2' },
-  { src: 'uploads/img_6929.webp',           label: 'Narzędzie' },
-  { src: 'uploads/photo-1776535144864.webp', label: 'Portret' },
-];
-
-let lastBlobUrl = null;
-
-function buildPhotoGrid() {
-  const grid = document.getElementById('photo-grid');
-  grid.innerHTML = '';
-
-  PHOTOS.forEach((p, i) => {
-    const div = document.createElement('div');
-    div.className = 'photo-option' + (i === 0 ? ' selected' : '');
-    div.tabIndex = 0;
-    div.setAttribute('role', 'button');
-    div.setAttribute('aria-label', 'Wybierz zdjęcie: ' + p.label);
-    div.innerHTML = `<img src="${p.src}" alt="${p.label}" onerror="this.parentElement.style.display='none'">
-      <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
-    div.addEventListener('click', () => selectPhoto(p.src, div));
-    div.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        selectPhoto(p.src, div);
-      }
-    });
-    grid.appendChild(div);
-  });
-
-  const uploadLabel = document.createElement('label');
-  uploadLabel.className = 'upload-btn';
-  uploadLabel.htmlFor = 'file-input';
-  uploadLabel.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Własne`;
-  grid.appendChild(uploadLabel);
-}
-
-function selectPhoto(src, el) {
-  const photo = document.getElementById('card-photo');
-  // Escapowanie cudzysłowów w URL na wypadek blob URL-i lub specjalnych znaków
-  photo.style.backgroundImage = `url("${src.replace(/"/g, '\\"')}")`;
-  document.getElementById('card-circle').classList.remove('empty');
-  document.querySelectorAll('.photo-option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-document.getElementById('file-input').addEventListener('change', function() {
-  const file = this.files[0];
-  if (!file) return;
-
-  // Zwolnij poprzedni blob URL żeby nie wyciekały w pamięci
-  if (lastBlobUrl) {
-    URL.revokeObjectURL(lastBlobUrl);
-  }
-  const url = URL.createObjectURL(file);
-  lastBlobUrl = url;
-
-  const grid = document.getElementById('photo-grid');
-  const uploadBtn = grid.lastElementChild;
-  const prev = document.getElementById('custom-opt');
-  if (prev) prev.remove();
-
-  const div = document.createElement('div');
-  div.className = 'photo-option selected';
-  div.id = 'custom-opt';
-  div.tabIndex = 0;
-  div.setAttribute('role', 'button');
-  div.setAttribute('aria-label', 'Wybierz wgrane zdjęcie');
-  div.innerHTML = `<img src="${url}" alt="Własne">
-    <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
-  div.addEventListener('click', () => selectPhoto(url, div));
-  grid.insertBefore(div, uploadBtn);
-  selectPhoto(url, div);
-
-  // Reset input żeby ten sam plik można wgrać ponownie
-  this.value = '';
-});
 
 // Tytuł
 const titleInput = document.getElementById('title-input');
@@ -428,7 +276,7 @@ document.getElementById('safe-zone-toggle').addEventListener('change', function(
 
 function scaleCard() {
   const editorWidth = 320;
-  const gaps = 28 * 3; // body padding × 2 + gap między editor a preview
+  const gaps = 28 * 3;
   const availW = window.innerWidth - editorWidth - gaps;
   const availH = window.innerHeight - 56 - 28 * 2;
   const scale = Math.min(availW / CARD_WIDTH, availH / CARD_HEIGHT, 1);
@@ -438,38 +286,6 @@ function scaleCard() {
 }
 window.addEventListener('resize', scaleCard);
 scaleCard();
-buildPhotoGrid();
-
-// Pozycja koła w canvas (musi pasować do CSS)
-const CIRCLE_X = 650;      // left = 1200 - 150 (right) - 400 (width)
-const CIRCLE_Y = 250;      // top = (900 - 400) / 2 (vertical center)
-const CIRCLE_SIZE = 400;
-
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => {
-      // Spróbuj jeszcze raz bez crossOrigin (dla blob URL-i i lokalnych plików)
-      const fallback = new Image();
-      fallback.onload = () => resolve(fallback);
-      fallback.onerror = () => reject(new Error('Nie udało się załadować: ' + src));
-      fallback.src = src;
-    };
-    img.src = src;
-  });
-}
-
-function drawCoverImage(ctx, img, x, y, w, h) {
-  // Implementacja CSS-owego "background-size: cover; background-position: center"
-  const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-  const sw = img.naturalWidth * scale;
-  const sh = img.naturalHeight * scale;
-  const sx = x + (w - sw) / 2;
-  const sy = y + (h - sh) / 2;
-  ctx.drawImage(img, sx, sy, sw, sh);
-}
 
 // ── Export ──
 async function exportPNG() {
@@ -479,20 +295,10 @@ async function exportPNG() {
   btn.disabled = true;
 
   const card = document.getElementById('card');
-  const photoEl = document.getElementById('card-photo');
 
   // Wyłącz safe zone na czas eksportu
   const safeZoneWasOn = card.classList.contains('show-safe-zone');
   card.classList.remove('show-safe-zone');
-
-  // Wydziel URL aktualnego zdjęcia (zanim ukryjemy)
-  const bgImage = photoEl.style.backgroundImage;
-  const urlMatch = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
-  const photoUrl = urlMatch ? urlMatch[1] : null;
-
-  // Tymczasowo ukryj obraz tła w koła — html2canvas i tak go nie potrafi
-  // dobrze wyrenderować, dorysujemy go ręcznie na canvas
-  photoEl.style.backgroundImage = 'none';
 
   // Klon offscreen do renderingu w 100%
   const offscreen = document.createElement('div');
@@ -510,12 +316,10 @@ async function exportPNG() {
   offscreen.appendChild(clone);
   document.body.appendChild(offscreen);
 
-  // Daj przeglądarce moment na render klona
   await new Promise(r => setTimeout(r, 100));
 
   try {
-    // 1. Wyrenderuj wszystko poza obrazem w kole przez html2canvas
-    const baseCanvas = await html2canvas(clone, {
+    const canvas = await html2canvas(clone, {
       width: CARD_WIDTH,
       height: CARD_HEIGHT,
       scale: 1,
@@ -525,30 +329,6 @@ async function exportPNG() {
       backgroundColor: '#ffffff',
     });
 
-    // 2. Dorysuj obraz w kole bezpośrednio na canvas (z maską okręgu)
-    if (photoUrl) {
-      try {
-        const img = await loadImage(photoUrl);
-        const ctx = baseCanvas.getContext('2d');
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(
-          CIRCLE_X + CIRCLE_SIZE / 2,
-          CIRCLE_Y + CIRCLE_SIZE / 2,
-          CIRCLE_SIZE / 2,
-          0,
-          Math.PI * 2
-        );
-        ctx.closePath();
-        ctx.clip();
-        drawCoverImage(ctx, img, CIRCLE_X, CIRCLE_Y, CIRCLE_SIZE, CIRCLE_SIZE);
-        ctx.restore();
-      } catch (imgErr) {
-        console.warn('Nie udało się dorysować zdjęcia w kole:', imgErr);
-      }
-    }
-
-    // 3. Eksport
     const title = (titleInput.value || 'grafika')
       .slice(0, 50)
       .replace(/[^\w\sąćęłńóśźżĄĆĘŁŃÓŚŹŻ–-]/g, '')
@@ -556,14 +336,13 @@ async function exportPNG() {
 
     const link = document.createElement('a');
     link.download = title + '.png';
-    link.href = baseCanvas.toDataURL('image/png');
+    link.href = canvas.toDataURL('image/png');
     link.click();
   } catch (err) {
     console.error('Błąd eksportu:', err);
     alert('Nie udało się wygenerować PNG. Sprawdź konsolę.');
   } finally {
     document.body.removeChild(offscreen);
-    photoEl.style.backgroundImage = bgImage; // przywróć
     if (safeZoneWasOn) card.classList.add('show-safe-zone');
     btn.textContent = originalText;
     btn.disabled = false;
