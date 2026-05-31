@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generator grafiki dla wizytówki Medycyna Kręgosłupa</title>
+<title>Generator grafiki dla wizytówki Bartosz Drobina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
@@ -74,7 +74,7 @@
   .editor textarea:focus,
   .editor input[type="text"]:focus {
     outline: none;
-    border-color: #1a6e7a;
+    border-color: #2a7bbf;
   }
   .char-counter {
     font-size: 10px;
@@ -114,7 +114,7 @@
   }
   .position-slider-row input[type="range"] {
     flex: 1;
-    accent-color: #1a6e7a;
+    accent-color: #2a7bbf;
     cursor: pointer;
   }
   .position-reset {
@@ -132,8 +132,8 @@
     transition: border-color 0.2s, color 0.2s;
   }
   .position-reset:hover {
-    border-color: #1a6e7a;
-    color: #1a6e7a;
+    border-color: #2a7bbf;
+    color: #2a7bbf;
   }
 
   .photo-option {
@@ -147,15 +147,15 @@
   }
   .photo-option:hover { transform: scale(1.04); }
   .photo-option:focus-visible {
-    outline: 2px solid #1a6e7a;
+    outline: 2px solid #2a7bbf;
     outline-offset: 2px;
   }
-  .photo-option.selected { border-color: #1a6e7a; }
+  .photo-option.selected { border-color: #2a7bbf; }
   .photo-option img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .photo-option .check {
     position: absolute; top: 3px; right: 3px;
     width: 16px; height: 16px;
-    background: #1a6e7a; border-radius: 50%;
+    background: #2a7bbf; border-radius: 50%;
     display: none; align-items: center; justify-content: center;
   }
   .photo-option.selected .check { display: flex; }
@@ -174,20 +174,20 @@
     text-transform: uppercase; letter-spacing: 0.08em;
     transition: border-color 0.2s, color 0.2s;
   }
-  .upload-btn:hover { border-color: #1a6e7a; color: #1a6e7a; }
+  .upload-btn:hover { border-color: #2a7bbf; color: #2a7bbf; }
   .upload-btn svg { width: 18px; height: 18px; }
   #file-input { display: none; }
 
   .export-btn {
-    background: #1a6e7a; color: #fff; border: none;
+    background: #2a7bbf; color: #fff; border: none;
     border-radius: 10px; padding: 13px;
     font-family: 'Lato', sans-serif;
     font-size: 14px; font-weight: 700;
     cursor: pointer; width: 100%;
     transition: background 0.2s;
   }
-  .export-btn:hover { background: #145860; }
-  .export-btn:disabled { background: #a0c4c9; cursor: not-allowed; }
+  .export-btn:hover { background: #1e5f9a; }
+  .export-btn:disabled { background: #90b8d8; cursor: not-allowed; }
 
   .hint { font-size: 11px; color: #bbb; line-height: 1.5; text-align: center; }
   .divider { height: 1px; background: #f0f0f0; }
@@ -229,7 +229,7 @@
     bottom: -180px; left: -120px;
     width: 480px; height: 480px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(200,232,236,0.45) 0%, rgba(255,255,255,0) 70%);
+    background: radial-gradient(circle, rgba(210,228,245,0.4) 0%, rgba(255,255,255,0) 70%);
     pointer-events: none;
   }
 
@@ -257,17 +257,8 @@
 
   .card-accent {
     width: 50px; height: 5px;
-    background: #1a6e7a; border-radius: 2.5px;
-    margin-bottom: 20px; flex-shrink: 0;
-  }
-
-  .card-eyebrow {
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #1a6e7a;
-    margin-bottom: 16px;
+    background: #2a7bbf; border-radius: 2.5px;
+    margin-bottom: 28px; flex-shrink: 0;
   }
 
   .card-title {
@@ -300,7 +291,7 @@
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-    background: #eef3f4;
+    background: #f0f3f6;
     z-index: 2;
   }
   .card-photo img {
@@ -316,22 +307,17 @@
 
 <!-- EDITOR -->
 <div class="editor">
-  <div class="editor-title">Generator grafiki dla wizytówki<br>Medycyna Kręgosłupa</div>
+  <div class="editor-title">Generator grafiki dla wizytówki<br>Bartosz Drobina</div>
 
   <div>
     <label>Tytuł grafiki</label>
-    <textarea id="title-input" maxlength="140" placeholder="Wpisz tytuł posta...">Kriolezja – skuteczne leczenie bólu kręgosłupa bez operacji</textarea>
+    <textarea id="title-input" maxlength="140" placeholder="Wpisz tytuł posta...">Fizjoterapia w leczeniu zawrotów głowy – błędnik czy mięśnie?</textarea>
     <div class="char-counter" id="char-counter">0 / 140</div>
   </div>
 
   <div>
-    <label>Nazwa centrum (eyebrow)</label>
-    <input type="text" id="eyebrow-input" maxlength="50" value="Centrum Medycyny Kręgosłupa">
-  </div>
-
-  <div>
     <label>Adres</label>
-    <input type="text" id="address-input" maxlength="60" value="ul. Niedziałkowskiego 10, Poznań">
+    <input type="text" id="address-input" maxlength="60" value="Piątkowska 125b/3, Poznań">
   </div>
 
   <div class="divider"></div>
@@ -373,17 +359,16 @@
       <div class="safe-zone-marker"></div>
       <div class="card-left">
         <div class="card-accent"></div>
-        <div class="card-eyebrow" id="card-eyebrow-el">Centrum Medycyny Kręgosłupa</div>
-        <div class="card-title" id="card-title-el">Kriolezja – skuteczne leczenie bólu kręgosłupa bez operacji</div>
+        <div class="card-title" id="card-title-el">Fizjoterapia w leczeniu zawrotów głowy – błędnik czy mięśnie?</div>
       </div>
       <div class="card-location">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#1a6e7a"/>
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#2a7bbf"/>
         </svg>
-        <span id="card-address-el">ul. Niedziałkowskiego 10, Poznań</span>
+        <span id="card-address-el">Piątkowska 125b/3, Poznań</span>
       </div>
       <div class="card-photo" id="card-photo">
-        <img id="card-photo-img" src="uploads/2024-10-30.webp" alt="">
+        <img id="card-photo-img" src="uploads/2024-05-20-1.webp" alt="">
       </div>
     </div>
   </div>
@@ -395,8 +380,16 @@ const CARD_WIDTH = 1200;
 const CARD_HEIGHT = 900;
 
 const PHOTOS = [
-  { src: 'uploads/2024-10-30.webp',     label: 'Zabieg' },
-  { src: 'uploads/2024-10-30 (1).webp', label: 'Konsultacja' },
+  { src: 'uploads/2024-05-20-1.webp',      label: 'Kolano' },
+  { src: 'uploads/2024-05-26.webp',         label: 'Plecy' },
+  { src: 'uploads/2024-05-14-1.webp',       label: 'Szyja' },
+  { src: 'uploads/IMG_6929(1)-1.webp',      label: 'Nadgarstek' },
+  { src: 'uploads/2024-06-26-1.webp',       label: 'Gabinet' },
+  { src: 'uploads/2024-05-12.webp',         label: 'Masaż 1' },
+  { src: 'uploads/2024-05-12 (1)-1.webp',   label: 'Masaż 2' },
+  { src: 'uploads/2024-05-14.webp',         label: 'Szyja 2' },
+  { src: 'uploads/img_6929.webp',           label: 'Narzędzie' },
+  { src: 'uploads/photo-1776535144864.webp', label: 'Portret' },
 ];
 
 let lastBlobUrl = null;
@@ -496,11 +489,6 @@ function updateTitle() {
 }
 titleInput.addEventListener('input', updateTitle);
 updateTitle();
-
-// Eyebrow (nazwa centrum)
-document.getElementById('eyebrow-input').addEventListener('input', function() {
-  document.getElementById('card-eyebrow-el').textContent = this.value;
-});
 
 // Adres
 document.getElementById('address-input').addEventListener('input', function() {
@@ -671,7 +659,7 @@ async function exportPNG() {
       .trim() || 'grafika';
 
     const link = document.createElement('a');
-    link.download = 'Medycyna Kręgosłupa – ' + title + '.png';
+    link.download = title + '.png';
     link.href = finalCanvas.toDataURL('image/png');
     link.click();
   } catch (err) {
