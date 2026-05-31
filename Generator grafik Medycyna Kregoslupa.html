@@ -154,6 +154,8 @@
   }
   .safe-zone-toggle input { cursor: pointer; }
 
+  .pos-slider { width: 100%; accent-color: #1a6e7a; cursor: pointer; }
+
   /* ── PREVIEW ── */
   .preview-area {
     flex: 1;
@@ -252,7 +254,7 @@
   }
   .card-circle img {
     width: 100%; height: 100%;
-    object-fit: cover; object-position: center top;
+    object-fit: cover; object-position: 50% 20%;
   }
   .card-circle.empty {
     background: #eef3f4;
@@ -290,6 +292,16 @@
     <label>Wybierz zdjęcie</label>
     <div class="photo-grid" id="photo-grid"></div>
     <input type="file" id="file-input" accept="image/*">
+  </div>
+
+  <div>
+    <label>Pozycja zdjęcia (lewo ↔ prawo)</label>
+    <input type="range" id="photo-pos-x" min="0" max="100" value="50" class="pos-slider">
+  </div>
+
+  <div>
+    <label>Pozycja zdjęcia (góra ↕ dół)</label>
+    <input type="range" id="photo-pos-y" min="0" max="100" value="20" class="pos-slider">
   </div>
 
   <div class="divider"></div>
@@ -430,6 +442,16 @@ document.getElementById('eyebrow-input').addEventListener('input', function() {
 document.getElementById('address-input').addEventListener('input', function() {
   document.getElementById('card-address-el').textContent = this.value;
 });
+
+// Pozycja zdjęcia
+const posX = document.getElementById('photo-pos-x');
+const posY = document.getElementById('photo-pos-y');
+function updatePhotoPos() {
+  document.getElementById('card-photo').style.objectPosition = posX.value + '% ' + posY.value + '%';
+}
+posX.addEventListener('input', updatePhotoPos);
+posY.addEventListener('input', updatePhotoPos);
+updatePhotoPos();
 
 // Safe zone overlay
 document.getElementById('safe-zone-toggle').addEventListener('change', function() {
