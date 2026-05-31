@@ -69,7 +69,7 @@
   }
   .editor textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 90px;
   }
   .editor textarea:focus,
   .editor input[type="text"]:focus {
@@ -88,6 +88,52 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 6px;
+  }
+
+  .position-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .position-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .position-slider-row label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 0;
+    width: 14px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .position-slider-row input[type="range"] {
+    flex: 1;
+    accent-color: #1a6e7a;
+    cursor: pointer;
+  }
+  .position-reset {
+    background: none;
+    border: 1px solid #e0e0e0;
+    color: #999;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Lato', sans-serif;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .position-reset:hover {
+    border-color: #1a6e7a;
+    color: #1a6e7a;
   }
 
   .photo-option {
@@ -154,8 +200,6 @@
   }
   .safe-zone-toggle input { cursor: pointer; }
 
-  .pos-slider { width: 100%; accent-color: #1a6e7a; cursor: pointer; }
-
   /* ── PREVIEW ── */
   .preview-area {
     flex: 1;
@@ -179,21 +223,23 @@
     transform-origin: top left;
   }
 
-  .card::before {
+  .card::after {
     content: '';
     position: absolute;
-    top: -120px; right: -120px;
-    width: 560px; height: 560px;
+    bottom: -180px; left: -120px;
+    width: 480px; height: 480px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(200,232,236,0.55) 0%, rgba(255,255,255,0) 70%);
+    background: radial-gradient(circle, rgba(200,232,236,0.45) 0%, rgba(255,255,255,0) 70%);
     pointer-events: none;
   }
 
-  /* Safe zone overlay — pokazuje obszar bezpieczny przed kadrowaniem przez Google */
-  .card.show-safe-zone::after {
-    content: '';
+  /* Safe zone overlay (900×900 px w środku) */
+  .card.show-safe-zone .safe-zone-marker {
+    display: block;
+  }
+  .safe-zone-marker {
+    display: none;
     position: absolute;
-    /* Środkowe 4:3, ale węższe — symulacja crop'u mobilnego do ~1:1 */
     top: 0; bottom: 0;
     left: 150px; right: 150px;
     border: 2px dashed rgba(255, 0, 0, 0.5);
@@ -204,14 +250,15 @@
   .card-left {
     position: absolute;
     left: 150px; top: 0; bottom: 0;
-    width: 470px;
+    width: 460px;
     display: flex; flex-direction: column; justify-content: center;
+    z-index: 2;
   }
 
   .card-accent {
-    width: 44px; height: 5px;
+    width: 50px; height: 5px;
     background: #1a6e7a; border-radius: 2.5px;
-    margin-bottom: 22px; flex-shrink: 0;
+    margin-bottom: 20px; flex-shrink: 0;
   }
 
   .card-eyebrow {
@@ -233,34 +280,35 @@
 
   .card-location {
     position: absolute;
-    bottom: 65px; left: 150px;
-    display: flex; align-items: center; gap: 8px;
-    max-width: 470px;
+    bottom: 70px; left: 150px;
+    display: flex; align-items: center; gap: 10px;
+    max-width: 460px;
+    z-index: 2;
   }
   .card-location span {
-    font-size: 18px; font-weight: 400; color: #555;
+    font-size: 20px; font-weight: 400; color: #555;
   }
   .card-location svg { flex-shrink: 0; }
 
-  /* Koło: w pełni wewnątrz safe zone 900x900 (right: 150px) */
-  .card-circle {
+  /* Zdjęcie: prostokąt portretowy 400×500 px (4:5), prawa strona, w safe zone */
+  .card-photo {
     position: absolute;
     right: 150px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 400px; height: 400px;
-    border-radius: 50%; overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.13);
-  }
-  .card-circle img {
-    width: 100%; height: 100%;
-    object-fit: cover; object-position: 50% 20%;
-  }
-  .card-circle.empty {
+    top: 200px;
+    width: 400px;
+    height: 500px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     background: #eef3f4;
-    display: flex; align-items: center; justify-content: center;
-    color: #bbb; font-size: 14px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em;
+    z-index: 2;
+  }
+  .card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
   }
 </style>
 </head>
@@ -292,16 +340,18 @@
     <label>Wybierz zdjęcie</label>
     <div class="photo-grid" id="photo-grid"></div>
     <input type="file" id="file-input" accept="image/*">
-  </div>
 
-  <div>
-    <label>Pozycja zdjęcia (lewo ↔ prawo)</label>
-    <input type="range" id="photo-pos-x" min="0" max="100" value="50" class="pos-slider">
-  </div>
-
-  <div>
-    <label>Pozycja zdjęcia (góra ↕ dół)</label>
-    <input type="range" id="photo-pos-y" min="0" max="100" value="20" class="pos-slider">
+    <div class="position-controls">
+      <div class="position-slider-row">
+        <label title="Pozycja w poziomie">←→</label>
+        <input type="range" id="pos-x" min="0" max="100" value="50">
+      </div>
+      <div class="position-slider-row">
+        <label title="Pozycja w pionie">↑↓</label>
+        <input type="range" id="pos-y" min="0" max="100" value="50">
+        <button type="button" class="position-reset" id="pos-reset">Reset</button>
+      </div>
+    </div>
   </div>
 
   <div class="divider"></div>
@@ -320,19 +370,20 @@
   <div class="preview-label">Podgląd grafiki (1200 × 900)</div>
   <div class="scale-wrapper" id="scale-wrapper">
     <div class="card" id="card">
+      <div class="safe-zone-marker"></div>
       <div class="card-left">
         <div class="card-accent"></div>
         <div class="card-eyebrow" id="card-eyebrow-el">Centrum Medycyny Kręgosłupa</div>
         <div class="card-title" id="card-title-el">Kriolezja – skuteczne leczenie bólu kręgosłupa bez operacji</div>
       </div>
       <div class="card-location">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#1a6e7a"/>
         </svg>
         <span id="card-address-el">ul. Niedziałkowskiego 10, Poznań</span>
       </div>
-      <div class="card-circle" id="card-circle">
-        <img id="card-photo" src="uploads/2024-10-30.webp" alt="">
+      <div class="card-photo" id="card-photo">
+        <img id="card-photo-img" src="uploads/2024-10-30.webp" alt="">
       </div>
     </div>
   </div>
@@ -362,11 +413,11 @@ function buildPhotoGrid() {
     div.setAttribute('aria-label', 'Wybierz zdjęcie: ' + p.label);
     div.innerHTML = `<img src="${p.src}" alt="${p.label}" onerror="this.parentElement.style.display='none'">
       <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
-    div.addEventListener('click', () => selectPhoto(p.src, div));
+    div.addEventListener('click', () => selectPhoto(p.src, div, p.label));
     div.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        selectPhoto(p.src, div);
+        selectPhoto(p.src, div, p.label);
       }
     });
     grid.appendChild(div);
@@ -379,23 +430,37 @@ function buildPhotoGrid() {
   grid.appendChild(uploadLabel);
 }
 
-function selectPhoto(src, el) {
-  const photo = document.getElementById('card-photo');
-  photo.src = src;
-  photo.alt = el.querySelector('img')?.alt || '';
-  document.getElementById('card-circle').classList.remove('empty');
+function selectPhoto(src, el, label = '') {
+  const img = document.getElementById('card-photo-img');
+  img.src = src;
+  img.alt = label;
   document.querySelectorAll('.photo-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
+  // Reset pozycji do center przy zmianie zdjęcia
+  resetPhotoPosition();
 }
+
+function updatePhotoPosition() {
+  const x = document.getElementById('pos-x').value;
+  const y = document.getElementById('pos-y').value;
+  document.getElementById('card-photo-img').style.objectPosition = `${x}% ${y}%`;
+}
+
+function resetPhotoPosition() {
+  document.getElementById('pos-x').value = 50;
+  document.getElementById('pos-y').value = 50;
+  updatePhotoPosition();
+}
+
+document.getElementById('pos-x').addEventListener('input', updatePhotoPosition);
+document.getElementById('pos-y').addEventListener('input', updatePhotoPosition);
+document.getElementById('pos-reset').addEventListener('click', resetPhotoPosition);
 
 document.getElementById('file-input').addEventListener('change', function() {
   const file = this.files[0];
   if (!file) return;
 
-  // Zwolnij poprzedni blob URL żeby nie wyciekały w pamięci
-  if (lastBlobUrl) {
-    URL.revokeObjectURL(lastBlobUrl);
-  }
+  if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
   const url = URL.createObjectURL(file);
   lastBlobUrl = url;
 
@@ -412,11 +477,10 @@ document.getElementById('file-input').addEventListener('change', function() {
   div.setAttribute('aria-label', 'Wybierz wgrane zdjęcie');
   div.innerHTML = `<img src="${url}" alt="Własne">
     <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
-  div.addEventListener('click', () => selectPhoto(url, div));
+  div.addEventListener('click', () => selectPhoto(url, div, 'Własne'));
   grid.insertBefore(div, uploadBtn);
-  selectPhoto(url, div);
+  selectPhoto(url, div, 'Własne');
 
-  // Reset input żeby ten sam plik można wgrać ponownie
   this.value = '';
 });
 
@@ -443,16 +507,6 @@ document.getElementById('address-input').addEventListener('input', function() {
   document.getElementById('card-address-el').textContent = this.value;
 });
 
-// Pozycja zdjęcia
-const posX = document.getElementById('photo-pos-x');
-const posY = document.getElementById('photo-pos-y');
-function updatePhotoPos() {
-  document.getElementById('card-photo').style.objectPosition = posX.value + '% ' + posY.value + '%';
-}
-posX.addEventListener('input', updatePhotoPos);
-posY.addEventListener('input', updatePhotoPos);
-updatePhotoPos();
-
 // Safe zone overlay
 document.getElementById('safe-zone-toggle').addEventListener('change', function() {
   document.getElementById('card').classList.toggle('show-safe-zone', this.checked);
@@ -460,7 +514,7 @@ document.getElementById('safe-zone-toggle').addEventListener('change', function(
 
 function scaleCard() {
   const editorWidth = 320;
-  const gaps = 28 * 3; // body padding × 2 + gap między editor a preview
+  const gaps = 28 * 3;
   const availW = window.innerWidth - editorWidth - gaps;
   const availH = window.innerHeight - 56 - 28 * 2;
   const scale = Math.min(availW / CARD_WIDTH, availH / CARD_HEIGHT, 1);
@@ -472,6 +526,65 @@ window.addEventListener('resize', scaleCard);
 scaleCard();
 buildPhotoGrid();
 
+// Pozycja zdjęcia w canvas (musi pasować do CSS .card-photo)
+const PHOTO_X = 650;       // left = 1200 - 150 (right) - 400 (width)
+const PHOTO_Y = 200;       // top
+const PHOTO_W = 400;
+const PHOTO_H = 500;
+const PHOTO_RADIUS = 20;
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      const fallback = new Image();
+      fallback.onload = () => resolve(fallback);
+      fallback.onerror = () => reject(new Error('Nie udało się załadować: ' + src));
+      fallback.src = src;
+    };
+    img.src = src;
+  });
+}
+
+function drawCoverImage(ctx, img, x, y, w, h, posX = 50, posY = 50) {
+  // CSS-owe object-fit: cover + object-position
+  const imgRatio = img.naturalWidth / img.naturalHeight;
+  const containerRatio = w / h;
+  let drawW, drawH;
+  if (imgRatio > containerRatio) {
+    drawH = h;
+    drawW = h * imgRatio;
+  } else {
+    drawW = w;
+    drawH = w / imgRatio;
+  }
+  const offsetX = -(drawW - w) * (posX / 100);
+  const offsetY = -(drawH - h) * (posY / 100);
+  ctx.drawImage(img, x + offsetX, y + offsetY, drawW, drawH);
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  // Fallback jeśli ctx.roundRect nie istnieje (starsze przeglądarki)
+  if (typeof ctx.roundRect === 'function') {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 // ── Export ──
 async function exportPNG() {
   const btn = document.getElementById('export-btn');
@@ -480,12 +593,25 @@ async function exportPNG() {
   btn.disabled = true;
 
   const card = document.getElementById('card');
+  const imgEl = document.getElementById('card-photo-img');
 
-  // Ukryj safe zone na czas eksportu
+  // Wyłącz safe zone na czas eksportu
   const safeZoneWasOn = card.classList.contains('show-safe-zone');
   card.classList.remove('show-safe-zone');
 
-  // Klonujemy w kontener offscreen, żeby renderować w 100% bez wpływu skalowania
+  // Zapamiętaj URL i pozycję — html2canvas ignoruje object-position,
+  // więc zdjęcie dorysujemy ręcznie po renderze
+  const photoUrl = imgEl.src;
+  const posXRaw = parseInt(document.getElementById('pos-x').value, 10);
+  const posYRaw = parseInt(document.getElementById('pos-y').value, 10);
+  const posX = Number.isNaN(posXRaw) ? 50 : posXRaw;
+  const posY = Number.isNaN(posYRaw) ? 50 : posYRaw;
+
+  // Tymczasowo ukryj img w oryginale (klon to skopiuje)
+  const origVisibility = imgEl.style.visibility;
+  imgEl.style.visibility = 'hidden';
+
+  // Klon offscreen do renderingu w 100%
   const offscreen = document.createElement('div');
   offscreen.style.cssText = `
     position: fixed;
@@ -501,11 +627,12 @@ async function exportPNG() {
   offscreen.appendChild(clone);
   document.body.appendChild(offscreen);
 
-  // Daj przeglądarce moment na załadowanie obrazków w klonie
   await new Promise(r => setTimeout(r, 150));
 
   try {
-    const canvas = await html2canvas(clone, {
+    // 1. html2canvas renderuje wszystko poza zdjęciem (zdjęcie ukryte, ale .card-photo
+    //    zachowuje background, border-radius i box-shadow)
+    const h2cCanvas = await html2canvas(clone, {
       width: CARD_WIDTH,
       height: CARD_HEIGHT,
       scale: 1,
@@ -515,6 +642,29 @@ async function exportPNG() {
       backgroundColor: '#ffffff',
     });
 
+    // 2. Skopiuj do nowego canvas — canvas z html2canvas jest "zamrożony"
+    //    i nie pozwala na dalsze rysowanie, więc kopiujemy do świeżego
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = CARD_WIDTH;
+    finalCanvas.height = CARD_HEIGHT;
+    const ctx = finalCanvas.getContext('2d');
+    ctx.drawImage(h2cCanvas, 0, 0);
+
+    // 3. Dorysuj zdjęcie ręcznie z maską roundRect + cover + object-position
+    if (photoUrl) {
+      try {
+        const img = await loadImage(photoUrl);
+        ctx.save();
+        roundRectPath(ctx, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H, PHOTO_RADIUS);
+        ctx.clip();
+        drawCoverImage(ctx, img, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H, posX, posY);
+        ctx.restore();
+      } catch (imgErr) {
+        console.warn('Nie udało się dorysować zdjęcia:', imgErr);
+      }
+    }
+
+    // 4. Eksport
     const title = (titleInput.value || 'grafika')
       .slice(0, 50)
       .replace(/[^\w\sąćęłńóśźżĄĆĘŁŃÓŚŹŻ–-]/g, '')
@@ -522,13 +672,14 @@ async function exportPNG() {
 
     const link = document.createElement('a');
     link.download = 'Medycyna Kręgosłupa – ' + title + '.png';
-    link.href = canvas.toDataURL('image/png');
+    link.href = finalCanvas.toDataURL('image/png');
     link.click();
   } catch (err) {
     console.error('Błąd eksportu:', err);
     alert('Nie udało się wygenerować PNG. Sprawdź konsolę.');
   } finally {
     document.body.removeChild(offscreen);
+    imgEl.style.visibility = origVisibility;
     if (safeZoneWasOn) card.classList.add('show-safe-zone');
     btn.textContent = originalText;
     btn.disabled = false;
